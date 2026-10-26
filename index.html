@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pennywise</title>
+<style>
+:root{
+  --bg:#f6f7f4;--card:#fff;--ink:#1d2a24;--mute:#66736c;--line:#e3e7e2;
+  --brand:#1f7a5a;--brand-ink:#fff;--bad:#c0392b;--bad-bg:#fbeceb;
+  --warn:#b7791f;--warn-bg:#fdf3e1;--ok:#1f7a5a;--ok-bg:#e6f4ee;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#121816;--card:#1a2321;--ink:#e8efeb;--mute:#93a39a;--line:#2a3532;
+  --brand:#3fb68b;--brand-ink:#08140f;--bad:#ff7b6b;--bad-bg:#3a1f1c;
+  --warn:#f0b955;--warn-bg:#35290f;--ok:#3fb68b;--ok-bg:#12302480}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+header h1{margin:8px 0 2px;font-size:1.6rem}
+header p{margin:0 0 12px;color:var(--mute)}
+nav{display:flex;gap:6px;margin:12px 0;border-bottom:1px solid var(--line)}
+nav button{background:none;border:0;padding:10px 14px;font:inherit;color:var(--mute);cursor:pointer;border-bottom:3px solid transparent}
+nav button[aria-selected=true]{color:var(--brand);border-color:var(--brand);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.hero-card{background:var(--brand);color:var(--brand-ink);border-radius:12px;padding:20px;margin-bottom:14px}
+.hero-card .big{font-size:2.2rem;font-weight:700}
+.hero-card p{margin:0;opacity:.9}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.stat b{display:block;font-size:1.3rem}
+.stat span{color:var(--mute);font-size:.85rem}
+h2{font-size:1.1rem;margin:0 0 10px}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:end}
+label{font-size:.8rem;color:var(--mute);display:block;margin-bottom:3px}
+input,select{width:100%;padding:10px;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px}
+button.primary{padding:10px 14px;font:inherit;font-weight:600;background:var(--brand);color:var(--brand-ink);border:0;border-radius:8px;cursor:pointer}
+button.del{background:none;border:1px solid var(--line);color:var(--bad);border-radius:6px;padding:4px 10px;cursor:pointer;font:inherit;font-size:.85rem}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item small{display:block;color:var(--mute)}
+.amt{font-weight:600;margin-right:8px}
+.tag{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:99px;font-size:.78rem;font-weight:600}
+.t-bad{background:var(--bad-bg);color:var(--bad)}.t-warn{background:var(--warn-bg);color:var(--warn)}.t-ok{background:var(--ok-bg);color:var(--ok)}
+.empty{color:var(--mute);margin:6px 0}
+.bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:var(--ok)}
+.bar i.over{background:var(--bad)}
+.finding{padding:10px 12px;border-left:4px solid var(--warn);background:var(--warn-bg);border-radius:6px;margin-bottom:8px}
+.finding.bad{border-color:var(--bad);background:var(--bad-bg)}
+.cat{display:flex;justify-content:space-between;padding:4px 0}
+#notice{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--bad);color:#fff;padding:10px 16px;border-radius:8px;max-width:90%}
+[hidden]{display:none!important}
+.inline{display:flex;gap:8px;align-items:end}
+.inline>div{flex:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Pennywise</h1>
+    <p>Track small spends and find subscriptions you no longer use.</p>
+  </header>
+  <nav role="tablist">
+    <button role="tab" aria-selected="true" data-t="dx">Diagnosis</button>
+    <button role="tab" aria-selected="false" data-t="ex">Expenses</button>
+    <button role="tab" aria-selected="false" data-t="sb">Subscriptions</button>
+  </nav>
+
+  <section id="dx"></section>
+
+  <section id="ex" hidden>
+    <div class="card">
+      <h2>Add expense</h2>
+      <form id="fe">
+        <div><label for="en">What</label><input id="en" required maxlength="40" placeholder="Coffee"></div>
+        <div><label for="ea">Amount (₹)</label><input id="ea" type="number" step="0.01" min="0.01" required></div>
+        <div><label for="ec">Category</label>
+          <select id="ec"><option>Food</option><option>Travel</option><option>Shopping</option><option>Entertainment</option><option>Utility</option><option>Other</option></select></div>
+        <button class="primary">Add</button>
+      </form>
+    </div>
+    <div class="card"><h2>Recent expenses</h2><div id="el"></div></div>
+  </section>
+
+  <section id="sb" hidden>
+    <div class="card">
+      <h2>Add subscription</h2>
+      <form id="fs">
+        <div><label for="sn">Name</label><input id="sn" required maxlength="40" placeholder="Music Plus"></div>
+        <div><label for="sa">Monthly cost (₹)</label><input id="sa" type="number" step="0.01" min="0.01" required></div>
+        <div><label for="sc">Category</label>
+          <select id="sc"><option>Entertainment</option><option>Utility</option><option>Education</option><option>Shopping</option><option>Other</option></select></div>
+        <div><label for="su">Months unused</label><input id="su" type="number" min="0" step="1" value="0" required></div>
+        <button class="primary">Add</button>
+      </form>
+    </div>
+    <div class="card"><h2>Your subscriptions</h2><div id="sl"></div></div>
+  </section>
+</div>
+<div id="notice" role="alert" hidden></div>
+
+<script>
+var ex=[],sb=[],budget=1500;
+var UNUSED_LIMIT=2;
+var $=function(i){return document.getElementById(i)};
+function inr(n){return "₹"+Math.round(n).toLocaleString("en-IN")}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+
+function api(u,m,b){
+  return fetch(u,{method:m||"GET",headers:{"Content-Type":"application/json"},body:b?JSON.stringify(b):undefined})
+    .then(function(r){return r.json().then(function(d){if(!r.ok)throw Error(d.error||"Request failed");return d})});
+}
+var timer;
+function report(e){var n=$("notice");n.textContent=e&&e.message?e.message:"Something went wrong";n.hidden=false;clearTimeout(timer);timer=setTimeout(function(){n.hidden=true},4500)}
+
+function subStatus(s){
+  if(s.unusedMonths>=UNUSED_LIMIT)return{t:"Unused "+s.unusedMonths+" months: cancel it",c:"t-bad",flag:1};
+  if(s.unusedMonths===1)return{t:"Unused 1 month: keep an eye on it",c:"t-warn",flag:0};
+  return{t:"In use",c:"t-ok",flag:0};
+}
+
+function renderDx(){
+  var now=new Date(),ym=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
+  var month=ex.filter(function(x){return new Date(x.d).toISOString().slice(0,7)===ym||x.d.slice(0,7)===ym});
+  var spent=month.reduce(function(a,x){return a+x.a},0);
+  var subM=sb.reduce(function(a,s){return a+s.a},0);
+  var total=spent+subM;
+  var flagged=sb.filter(function(s){return subStatus(s).flag});
+  var saveM=flagged.reduce(function(a,s){return a+s.a},0);
+  var pct=budget>0?Math.min(100,total/budget*100):0;
+  var over=total>budget;
+
+  var cats={};month.forEach(function(x){cats[x.c]=(cats[x.c]||0)+x.a});
+  sb.forEach(function(s){cats[s.category]=(cats[s.category]||0)+s.a});
+  var catRows=Object.keys(cats).sort(function(a,b){return cats[b]-cats[a]});
+
+  var h='<div class="hero-card"><p>Yearly savings opportunity</p><div class="big">'+inr(saveM*12)+'</div><p>if you cancel subscriptions unused for '+UNUSED_LIMIT+' or more months</p></div>';
+  h+='<div class="grid"><div class="stat"><b>'+inr(spent)+'</b><span>Expenses this month</span></div>'
+    +'<div class="stat"><b>'+inr(subM)+'</b><span>Subscriptions / month</span></div>'
+    +'<div class="stat"><b>'+inr(total)+'</b><span>Total this month</span></div></div>';
+
+  h+='<div class="card"><h2>Monthly budget</h2><div>'+inr(total)+' of '+inr(budget)+' used ('+Math.round(total/budget*100)+'%)</div>'
+    +'<div class="bar"><i class="'+(over?'over':'')+'" style="width:'+pct+'%"></i></div>'
+    +'<p class="'+(over?'':'empty')+'" style="margin:4px 0 12px">'+(over?'You are '+inr(total-budget)+' over budget.':inr(budget-total)+' left this month.')+'</p>'
+    +'<div class="inline"><div><label for="bi">Change budget (₹)</label><input id="bi" type="number" min="1" step="1" value="'+budget+'"></div><button class="primary" id="bs">Save</button></div></div>';
+
+  h+='<div class="card"><h2>Findings</h2>';
+  if(flagged.length){
+    flagged.forEach(function(s){h+='<div class="finding bad"><b>'+esc(s.n)+'</b> has not been used for '+s.unusedMonths+' months. It costs '+inr(s.a)+' a month, '+inr(s.a*12)+' a year.</div>'});
+  }
+  if(over)h+='<div class="finding">Spending is over your monthly budget by '+inr(total-budget)+'.</div>';
+  if(!flagged.length&&!over)h+='<p class="empty">'+((ex.length||sb.length)?'No leaks found. Keep logging expenses and subscription usage.':'Add expenses and subscriptions to see your diagnosis.')+'</p>';
+  h+='</div>';
+
+  if(catRows.length){
+    h+='<div class="card"><h2>By category (this month)</h2>';
+    catRows.forEach(function(c){h+='<div class="cat"><span>'+esc(c)+'</span><b>'+inr(cats[c])+'</b></div>'});
+    h+='</div>';
+  }
+  $("dx").innerHTML=h;
+}
+
+function renderEx(){
+  var l=ex.slice().reverse().slice(0,50);
+  $("el").innerHTML=l.length?l.map(function(x){
+    return '<div class="item"><div>'+esc(x.n)+'<small>'+esc(x.c)+' · '+new Date(x.d).toLocaleDateString("en-IN",{day:"numeric",month:"short"})+'</small></div>'
+      +'<div><span class="amt">'+inr(x.a)+'</span><button class="del" data-e="'+x.id+'" aria-label="Delete '+esc(x.n)+'">Delete</button></div></div>'}).join("")
+    :'<p class="empty">No expenses yet. Log even the ₹10 ones.</p>';
+}
+function renderSb(){
+  $("sl").innerHTML=sb.length?sb.map(function(s){
+    var v=subStatus(s);
+    return '<div class="item"><div>'+esc(s.n)+'<small>'+esc(s.category)+' · '+inr(s.a)+' / month</small><span class="tag '+v.c+'">'+esc(v.t)+'</span></div>'
+      +'<button class="del" data-s="'+s.id+'" aria-label="Delete '+esc(s.n)+'">Delete</button></div>'}).join("")
+    :'<p class="empty">No subscriptions yet.</p>';
+}
+function all(){renderDx();renderEx();renderSb()}
+function refresh(){
+  return Promise.all([api("/api/expenses"),api("/api/subs"),api("/api/budget")]).then(function(r){
+    ex=r[0];sb=r[1];budget=r[2].monthlyBudget;all();
+  });
+}
+
+$("fe").addEventListener("submit",function(e){
+  e.preventDefault();var f=this;
+  api("/api/expenses","POST",{n:$("en").value.trim(),a:parseFloat($("ea").value),c:$("ec").value})
+    .then(function(){f.reset();return refresh()}).catch(report);
+});
+$("fs").addEventListener("submit",function(e){
+  e.preventDefault();var f=this;
+  api("/api/subs","POST",{n:$("sn").value.trim(),a:parseFloat($("sa").value),category:$("sc").value,unusedMonths:parseInt($("su").value,10)||0})
+    .then(function(){f.reset();return refresh()}).catch(report);
+});
+document.addEventListener("click",function(e){
+  var t=e.target,i;
+  if(!t.getAttribute)return;
+  if(i=t.getAttribute("data-e")){api("/api/expenses/"+i,"DELETE").then(refresh).catch(report)}
+  else if(i=t.getAttribute("data-s")){api("/api/subs/"+i,"DELETE").then(refresh).catch(report)}
+  else if(t.id==="bs"){api("/api/budget","PUT",{monthlyBudget:parseFloat($("bi").value)}).then(refresh).catch(report)}
+  else if(t.getAttribute("role")==="tab"){
+    document.querySelectorAll("nav button").forEach(function(b){b.setAttribute("aria-selected",b===t)});
+    ["dx","ex","sb"].forEach(function(s){$(s).hidden=s!==t.getAttribute("data-t")});
+  }
+});
+refresh().catch(report);
+</script>
+</body>
+</html>
